@@ -1,0 +1,12 @@
+[package]
+name = "rjvm"
+version = "0.1.0"
+authors = ["Andreas Diepenbrock"]
+categories = ["parser-implementations"]
+repository = "https://github.com/adiepenbrock/rjvm"
+edition = "2021"
+license = "MIT"
+keywords = ["jvm", "java"]
+
+[dependencies]
+[features]
