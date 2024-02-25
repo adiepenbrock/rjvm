@@ -14,3 +14,8 @@ bitflags = "2.4.2"
 [features]
 default = ["decoder"]
 decoder = []
+
+[[example]]
+name = "decoding"
+required-features = ["decoder"]
+doc-scrape-examples = true
