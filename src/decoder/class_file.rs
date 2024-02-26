@@ -27,7 +27,7 @@ impl ClassFile {
 
         let constant_pool_count = buffer.take::<u16>().unwrap();
         (0..constant_pool_count - 1).for_each(|_| {
-            let entry = ConstantPoolEntry::decode(buffer, &constant_pool).unwrap();
+            let entry = ConstantPoolEntry::decode(buffer, constant_pool).unwrap();
             constant_pool.add(entry);
         });
 

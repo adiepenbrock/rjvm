@@ -20,7 +20,7 @@ impl Decodable<Field> for Field {
 
         let attributes_count = buffer.take::<u16>().unwrap();
         let attributes = (0..attributes_count)
-            .map(|_| Attribute::decode(buffer, &constant_pool).unwrap())
+            .map(|_| Attribute::decode(buffer, constant_pool).unwrap())
             .collect();
 
         Ok(Field {
