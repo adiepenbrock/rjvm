@@ -5,6 +5,12 @@ pub struct ConstantPool {
     entries: Vec<ConstantPoolEntry>,
 }
 
+impl Default for ConstantPool {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConstantPool {
     pub fn new() -> Self {
         Self {

@@ -130,7 +130,7 @@ impl Decodable<TypeAnnotation> for TypeAnnotation {
         constant_pool: &ConstantPool,
     ) -> Result<TypeAnnotation, DecodingError> {
         let target_type = buffer.take::<u8>().unwrap();
-        let target_info = TypeAnnotationTargetInfo::decode(buffer, &constant_pool).unwrap();
+        let target_info = TypeAnnotationTargetInfo::decode(buffer, constant_pool).unwrap();
         let target_path = TypePath::decode(buffer, constant_pool).unwrap();
         let type_index = buffer.take::<u16>().unwrap();
         let num_element_value_pairs = buffer.take::<u16>().unwrap();
@@ -180,7 +180,7 @@ impl Decodable<TypeAnnotationTargetInfoType> for TypeAnnotationTargetInfo {
                     bound_index,
                 })
             }
-            0x13 | 0x14 | 0x15 => Some(TypeAnnotationTargetInfoType::Empty {}),
+            0x13..=0x15 => Some(TypeAnnotationTargetInfoType::Empty {}),
             0x16 => {
                 let formal_parameter_index = buffer.take::<u8>().unwrap();
                 Some(TypeAnnotationTargetInfoType::FormalParameter {
@@ -213,11 +213,11 @@ impl Decodable<TypeAnnotationTargetInfoType> for TypeAnnotationTargetInfo {
                     exception_table_index,
                 })
             }
-            0x43 | 0x44 | 0x45 | 0x46 => {
+            0x43..=0x46 => {
                 let offset = buffer.take::<u16>().unwrap();
                 Some(TypeAnnotationTargetInfoType::Offset { offset })
             }
-            0x47 | 0x48 | 0x49 | 0x4A | 0x4B => {
+            0x47..=0x4B => {
                 let offset = buffer.take::<u16>().unwrap();
                 let type_argument_index = buffer.take::<u8>().unwrap();
                 Some(TypeAnnotationTargetInfoType::TypeArgument {
@@ -449,10 +449,7 @@ impl Decodable<Attribute> for CodeInfo {
             .collect();
         let attributes_count = buffer.take::<u16>().unwrap();
         let attributes = (0..attributes_count)
-            .map(|_| {
-                let attribute = Attribute::decode(buffer, constant_pool).unwrap();
-                attribute
-            })
+            .map(|_| Attribute::decode(buffer, constant_pool).unwrap())
             .collect();
 
         let info = CodeInfo {
@@ -554,7 +551,7 @@ impl Decodable<Attribute> for StackMapTableInfo {
                             offset_delta,
                         })
                     }
-                    251..=254 => {
+                    252..=254 => {
                         let offset_delta = buffer.take::<u16>().unwrap();
                         let locals = (0..frame_type - 251)
                             .map(|_| {
