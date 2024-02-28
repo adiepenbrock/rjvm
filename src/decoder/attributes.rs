@@ -1,5 +1,5 @@
 use crate::{
-    decoder::{buffer::Buffer, error::DecodingError, Decodable},
+    decoder::{buffer::BufferedReader, error::DecodingError, Decodable},
     types::{
         attributes::{
             Annotation, AnnotationDefaultInfo, Attribute, BootstrapMethod, BootstrapMethodsInfo,
@@ -39,7 +39,7 @@ impl From<u16> for ConstantPoolValueRef {
 
 impl Decodable<Annotation> for Annotation {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Annotation, DecodingError> {
         let type_index = buffer.take::<u16>().expect("decode `type_index`");
@@ -66,7 +66,7 @@ impl Decodable<Annotation> for Annotation {
 
 impl Decodable<ElementValue> for ElementValue {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<ElementValue, DecodingError> {
         let tag = buffer.take::<u8>().unwrap();
@@ -126,7 +126,7 @@ impl Decodable<ElementValue> for ElementValue {
 
 impl Decodable<TypeAnnotation> for TypeAnnotation {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<TypeAnnotation, DecodingError> {
         let target_type = buffer.take::<u8>().unwrap();
@@ -157,7 +157,7 @@ impl Decodable<TypeAnnotation> for TypeAnnotation {
 
 impl Decodable<TypeAnnotationTargetInfoType> for TypeAnnotationTargetInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<TypeAnnotationTargetInfoType, DecodingError> {
         let tag = buffer.take::<u8>().unwrap();
@@ -238,7 +238,7 @@ impl Decodable<TypeAnnotationTargetInfoType> for TypeAnnotationTargetInfo {
 
 impl Decodable<TypePath> for TypePath {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<TypePath, DecodingError> {
         let path_length = buffer.take::<u8>().unwrap();
@@ -258,7 +258,7 @@ impl Decodable<TypePath> for TypePath {
 
 impl Decodable<BootstrapMethod> for BootstrapMethod {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<BootstrapMethod, DecodingError> {
         let bootstrap_method_ref = buffer.take::<u16>().unwrap();
@@ -276,7 +276,7 @@ impl Decodable<BootstrapMethod> for BootstrapMethod {
 
 impl Decodable<Requires> for Requires {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Requires, DecodingError> {
         let requires_index = buffer.take::<u16>().unwrap();
@@ -292,7 +292,7 @@ impl Decodable<Requires> for Requires {
 
 impl Decodable<Exports> for Exports {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Exports, DecodingError> {
         let exports_index = buffer.take::<u16>().unwrap();
@@ -311,7 +311,10 @@ impl Decodable<Exports> for Exports {
 }
 
 impl Decodable<Opens> for Opens {
-    fn decode(buffer: &mut Buffer, _constant_pool: &ConstantPool) -> Result<Opens, DecodingError> {
+    fn decode(
+        buffer: &mut BufferedReader,
+        _constant_pool: &ConstantPool,
+    ) -> Result<Opens, DecodingError> {
         let opens_index = buffer.take::<u16>().unwrap();
         let opens_flags = buffer.take::<u16>().unwrap();
         let opens_to_count = buffer.take::<u16>().unwrap();
@@ -329,7 +332,7 @@ impl Decodable<Opens> for Opens {
 
 impl Decodable<Provides> for Provides {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Provides, DecodingError> {
         let provides_index = buffer.take::<u16>().unwrap();
@@ -346,7 +349,10 @@ impl Decodable<Provides> for Provides {
 }
 
 impl Attribute {
-    pub fn decode(buffer: &mut Buffer, pool: &ConstantPool) -> Result<Attribute, DecodingError> {
+    pub fn decode(
+        buffer: &mut BufferedReader,
+        pool: &ConstantPool,
+    ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.peek_bytes::<u16>().unwrap();
         let attribute_name = pool.text_of_value(attribute_name_index as usize).unwrap();
 
@@ -402,7 +408,7 @@ impl Attribute {
 
 impl Decodable<Attribute> for ConstantValueInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -423,7 +429,7 @@ impl Decodable<Attribute> for ConstantValueInfo {
 
 impl Decodable<Attribute> for CodeInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -431,7 +437,7 @@ impl Decodable<Attribute> for CodeInfo {
         let max_stack = buffer.take::<u16>().unwrap();
         let max_locals = buffer.take::<u16>().unwrap();
         let code_length = buffer.take::<u32>().unwrap();
-        let code = buffer.take_length(code_length as usize).unwrap();
+        let code = buffer.take_bytes(code_length as usize).unwrap();
         let exception_table_length = buffer.take::<u16>().unwrap();
         let exception_table = (0..exception_table_length)
             .map(|_| {
@@ -473,7 +479,7 @@ impl Decodable<Attribute> for CodeInfo {
 
 impl Decodable<Attribute> for StackMapTableInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -665,7 +671,7 @@ impl Decodable<Attribute> for StackMapTableInfo {
 
 impl Decodable<Attribute> for ExceptionsInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -690,7 +696,7 @@ impl Decodable<Attribute> for ExceptionsInfo {
 
 impl Decodable<Attribute> for InnerClassesInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -729,7 +735,7 @@ impl Decodable<Attribute> for InnerClassesInfo {
 
 impl Decodable<Attribute> for EnclosingMethodInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -752,7 +758,7 @@ impl Decodable<Attribute> for EnclosingMethodInfo {
 
 impl Decodable<Attribute> for SyntheticInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -771,7 +777,7 @@ impl Decodable<Attribute> for SyntheticInfo {
 
 impl Decodable<Attribute> for SignatureInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -792,7 +798,7 @@ impl Decodable<Attribute> for SignatureInfo {
 
 impl Decodable<Attribute> for SourceFileInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -813,7 +819,7 @@ impl Decodable<Attribute> for SourceFileInfo {
 
 impl Decodable<Attribute> for SourceDebugExtensionInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -834,7 +840,7 @@ impl Decodable<Attribute> for SourceDebugExtensionInfo {
 
 impl Decodable<Attribute> for LineNumberTableInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -866,7 +872,7 @@ impl Decodable<Attribute> for LineNumberTableInfo {
 
 impl Decodable<Attribute> for LocalVariableTableInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -904,7 +910,7 @@ impl Decodable<Attribute> for LocalVariableTableInfo {
 
 impl Decodable<Attribute> for LocalVariableTypeTableInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -942,7 +948,7 @@ impl Decodable<Attribute> for LocalVariableTypeTableInfo {
 
 impl Decodable<Attribute> for DeprecatedInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -961,7 +967,7 @@ impl Decodable<Attribute> for DeprecatedInfo {
 
 impl Decodable<Attribute> for RuntimeVisibleAnnotationsInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -986,7 +992,7 @@ impl Decodable<Attribute> for RuntimeVisibleAnnotationsInfo {
 
 impl Decodable<Attribute> for RuntimeInvisibleAnnotationsInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1011,7 +1017,7 @@ impl Decodable<Attribute> for RuntimeInvisibleAnnotationsInfo {
 
 impl Decodable<Attribute> for RuntimeVisibleParameterAnnotationsInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1045,7 +1051,7 @@ impl Decodable<Attribute> for RuntimeVisibleParameterAnnotationsInfo {
 
 impl Decodable<Attribute> for RuntimeInvisibleParameterAnnotationsInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1079,7 +1085,7 @@ impl Decodable<Attribute> for RuntimeInvisibleParameterAnnotationsInfo {
 
 impl Decodable<Attribute> for RuntimeVisibleTypeAnnotationsInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1104,7 +1110,7 @@ impl Decodable<Attribute> for RuntimeVisibleTypeAnnotationsInfo {
 
 impl Decodable<Attribute> for RuntimeInvisibleTypeAnnotationsInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1129,7 +1135,7 @@ impl Decodable<Attribute> for RuntimeInvisibleTypeAnnotationsInfo {
 
 impl Decodable<Attribute> for AnnotationDefaultInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1150,7 +1156,7 @@ impl Decodable<Attribute> for AnnotationDefaultInfo {
 
 impl Decodable<Attribute> for BootstrapMethodsInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1175,7 +1181,7 @@ impl Decodable<Attribute> for BootstrapMethodsInfo {
 
 impl Decodable<Attribute> for MethodParametersInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1207,7 +1213,7 @@ impl Decodable<Attribute> for MethodParametersInfo {
 
 impl Decodable<Attribute> for ModuleInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1262,7 +1268,7 @@ impl Decodable<Attribute> for ModuleInfo {
 
 impl Decodable<Attribute> for ModulePackagesInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1287,7 +1293,7 @@ impl Decodable<Attribute> for ModulePackagesInfo {
 
 impl Decodable<Attribute> for ModuleMainClassInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1308,7 +1314,7 @@ impl Decodable<Attribute> for ModuleMainClassInfo {
 
 impl Decodable<Attribute> for NestHostInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1329,7 +1335,7 @@ impl Decodable<Attribute> for NestHostInfo {
 
 impl Decodable<Attribute> for NestMembersInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1354,7 +1360,7 @@ impl Decodable<Attribute> for NestMembersInfo {
 
 impl Decodable<Attribute> for RecordInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();
@@ -1379,7 +1385,7 @@ impl Decodable<Attribute> for RecordInfo {
 
 impl Decodable<Attribute> for PermittedSubtypesInfo {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Attribute, DecodingError> {
         let attribute_name_index = buffer.take::<u16>().unwrap();

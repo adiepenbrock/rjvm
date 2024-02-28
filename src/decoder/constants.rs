@@ -1,11 +1,11 @@
 use crate::{
-    decoder::{buffer::Buffer, error::DecodingError, Decodable},
+    decoder::{buffer::BufferedReader, error::DecodingError, Decodable},
     types::constants::{ConstantPool, ConstantPoolEntry, ConstantTag},
 };
 
 impl Decodable<ConstantPoolEntry> for ConstantPoolEntry {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<ConstantPoolEntry, DecodingError> {
         let tag = buffer.take::<u8>().unwrap();
@@ -88,7 +88,7 @@ impl Decodable<ConstantPoolEntry> for ConstantPoolEntry {
             }
             ConstantTag::Utf8 => {
                 let length = buffer.take::<u16>().expect("msg");
-                let bytes = buffer.take_length(length as usize).expect("msg");
+                let bytes = buffer.take_bytes(length as usize).expect("msg");
 
                 ConstantPoolEntry::Utf8 {
                     length,

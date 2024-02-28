@@ -1,5 +1,5 @@
 use crate::{
-    decoder::{buffer::Buffer, error::DecodingError},
+    decoder::{buffer::BufferedReader, error::DecodingError},
     types::constants::ConstantPool,
 };
 
@@ -12,5 +12,8 @@ pub mod fields;
 pub mod methods;
 
 pub trait Decodable<T> {
-    fn decode(buffer: &mut Buffer, constant_pool: &ConstantPool) -> Result<T, DecodingError>;
+    fn decode(
+        buffer: &mut BufferedReader,
+        constant_pool: &ConstantPool,
+    ) -> Result<T, DecodingError>;
 }

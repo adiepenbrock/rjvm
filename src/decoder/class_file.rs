@@ -1,5 +1,5 @@
 use crate::{
-    decoder::{buffer::Buffer, error::DecodingError, Decodable},
+    decoder::{buffer::BufferedReader, error::DecodingError, Decodable},
     types::{
         attributes::Attribute,
         constants::{ConstantPool, ConstantPoolEntry},
@@ -10,7 +10,7 @@ use crate::{
 
 impl ClassFile {
     pub fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         constant_pool: &mut ConstantPool,
     ) -> Result<ClassFile, DecodingError> {
         let magic_number = buffer.take::<u32>().unwrap();
@@ -82,7 +82,7 @@ impl ClassFile {
 
 impl Decodable<Interface> for Interface {
     fn decode(
-        buffer: &mut Buffer,
+        buffer: &mut BufferedReader,
         _constant_pool: &ConstantPool,
     ) -> Result<Interface, DecodingError> {
         let name_index = buffer.take::<u16>().unwrap();
