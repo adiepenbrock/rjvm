@@ -1,12 +1,15 @@
 use crate::{
-    decoder::{buffer::Buffer, error::DecodingError, Decodable},
+    decoder::{buffer::BufferedReader, error::DecodingError, Decodable},
     types::{
         attributes::Attribute, constants::ConstantPool, elements::Method, flags::MethodAccessFlags,
     },
 };
 
 impl Decodable<Method> for Method {
-    fn decode(buffer: &mut Buffer, constant_pool: &ConstantPool) -> Result<Method, DecodingError> {
+    fn decode(
+        buffer: &mut BufferedReader,
+        constant_pool: &ConstantPool,
+    ) -> Result<Method, DecodingError> {
         let access_flags = buffer.take::<u16>().unwrap();
         let access_flags = MethodAccessFlags::from_bits(access_flags).unwrap();
 
