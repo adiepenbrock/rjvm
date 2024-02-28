@@ -9,5 +9,6 @@ fn main() {
     let mut constant_pool = ConstantPool::new();
     let cf = ClassFile::decode(&mut buffer, &mut constant_pool);
 
+    let cf = cf.unwrap();
     dbg!(cf);
 }

@@ -19,3 +19,8 @@ decoder = []
 name = "decoding"
 required-features = ["decoder"]
 doc-scrape-examples = true
+
+[[example]]
+name = "instructions"
+required-features = ["decoder"]
+doc-scrape-examples = true
