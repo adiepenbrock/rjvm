@@ -1,6 +1,6 @@
 use rjvm::{
-    types::{constants::ConstantPool, elements::ClassFile},
     decoder::buffer::BufferedReader,
+    types::{constants::ConstantPool, elements::ClassFile},
 };
 
 fn main() {
