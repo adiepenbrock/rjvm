@@ -29,7 +29,7 @@ let class_file = rjvm::types::elements::ClassFile::decode(&mut buffer, &mut cons
 Find some simple examples on how to use `rjvm` in the `examples` directory of this repository.
 
 - [`decoding.rs`](https://github.com/adiepenbrock/rjvm/blob/main/examples/decoding.rs): shows an example of how to parse a class file.
-- [instructions.rs`](https://github.com/adiepenbrock/rjvm/blob/main/examples/instructions.rs): shows an example of how to parse a class file and print all methods with their instructions.
+- [`instructions.rs`](https://github.com/adiepenbrock/rjvm/blob/main/examples/instructions.rs): shows an example of how to parse a class file and print all methods with their instructions.
 
 ## Roadmap
 - [x] Parse class files with all related elements
