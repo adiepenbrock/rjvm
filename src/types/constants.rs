@@ -47,6 +47,33 @@ impl ConstantPool {
             ConstantPoolEntry::String { string_index } => {
                 self.text_of_value(*string_index as usize)
             }
+            ConstantPoolEntry::Integer { bytes } => Some(bytes.to_string()),
+            ConstantPoolEntry::Float { bytes } => Some(bytes.to_string()),
+            ConstantPoolEntry::MethodRef {
+                class_index,
+                name_and_type_index,
+            } => Some(format!(
+                "{}.{}",
+                self.text_of_value(*class_index as usize).unwrap(),
+                self.text_of_value(*name_and_type_index as usize).unwrap()
+            )),
+            ConstantPoolEntry::InterfaceMethodRef {
+                class_index,
+                name_and_type_index,
+            } => Some(format!(
+                "{}.{}",
+                self.text_of_value(*class_index as usize).unwrap(),
+                self.text_of_value(*name_and_type_index as usize).unwrap()
+            )),
+            ConstantPoolEntry::NameAndType {
+                name_index,
+                descriptor_index,
+            } => Some(format!(
+                "{}: {}",
+                self.text_of_value(*name_index as usize).unwrap(),
+                self.text_of_value(*descriptor_index as usize).unwrap()
+            )),
+            ConstantPoolEntry::Class { name_index } => self.text_of_value(*name_index as usize),
             _ => None,
         }
     }
