@@ -2,6 +2,7 @@
 name = "rjvm"
 version = "0.1.0"
 authors = ["Andreas Diepenbrock"]
+description = "Parse JVM class files with Rust"
 categories = ["parser-implementations"]
 repository = "https://github.com/adiepenbrock/rjvm"
 edition = "2021"
