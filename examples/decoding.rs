@@ -1,5 +1,5 @@
 use rjvm::{
-    decoder::buffer::BufferedReader,
+    decoder::BufferedReader,
     types::{constants::ConstantPool, elements::ClassFile},
 };
 
