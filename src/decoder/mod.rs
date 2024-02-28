@@ -1,15 +1,15 @@
-use crate::{
-    decoder::{buffer::BufferedReader, error::DecodingError},
-    types::constants::ConstantPool,
-};
+use crate::{decoder::error::DecodingError, types::constants::ConstantPool};
 
 pub mod attributes;
-pub mod buffer;
 pub mod class_file;
 pub mod constants;
 pub mod error;
 pub mod fields;
 pub mod methods;
+
+mod buffer;
+
+pub use crate::decoder::buffer::BufferedReader;
 
 pub trait Decodable<T> {
     fn decode(
