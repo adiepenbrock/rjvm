@@ -93,6 +93,6 @@ pub fn parse_descriptor(chars: &mut Vec<char>) -> Option<FieldType> {
             let child = parse_descriptor(chars);
             child.map(|ty| FieldType::Array(Box::new(ty)))
         }
-        _ => None,
+        _ => Some(FieldType::Base(BaseType::Void)),
     }
 }
