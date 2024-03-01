@@ -10,5 +10,7 @@ fn main() {
     let cf = ClassFile::decode(&mut buffer, &mut constant_pool);
 
     let cf = cf.unwrap();
-    dbg!(cf);
+    cf.methods.iter().for_each(|method| {
+        dbg!(&method.descriptor);
+    })
 }
