@@ -1,7 +1,11 @@
 use crate::{
     decoder::{buffer::BufferedReader, error::DecodingError, Decodable},
     types::{
-        attributes::Attribute, constants::ConstantPool, elements::Field, flags::FieldAccessFlags,
+        attributes::Attribute,
+        constants::ConstantPool,
+        descriptors::{BaseType, Descriptor, DescriptorKind, FieldType},
+        elements::Field,
+        flags::FieldAccessFlags,
     },
 };
 
@@ -20,6 +24,10 @@ impl Decodable<Field> for Field {
         let descriptor = constant_pool
             .text_of_value(descriptor_index as usize)
             .unwrap();
+        let descriptor = Descriptor::parse_from_field(descriptor).unwrap_or(Descriptor {
+            kind: DescriptorKind::Type,
+            ty: FieldType::Base(BaseType::Void),
+        });
 
         let attributes_count = buffer.take::<u16>().unwrap();
         let attributes = (0..attributes_count)

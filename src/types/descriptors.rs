@@ -1,16 +1,19 @@
 #[derive(Debug, Clone, PartialEq)]
-pub struct MethodDescriptor {
-    pub parameters: Vec<FieldType>,
-    pub return_ty: Option<FieldType>,
+pub enum DescriptorKind {
+    Parameter,
+    Return,
+    Type,
 }
 
-impl std::fmt::Display for MethodDescriptor {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for param in &self.parameters {
-            write!(f, "{}", param);
-        }
+#[derive(Debug, Clone, PartialEq)]
+pub struct Descriptor {
+    pub kind: DescriptorKind,
+    pub ty: FieldType,
+}
 
-        Ok(())
+impl std::fmt::Display for Descriptor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.ty)
     }
 }
 

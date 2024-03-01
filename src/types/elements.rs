@@ -1,6 +1,7 @@
 use crate::types::{
     attributes::Attribute,
     constants::ConstantPool,
+    descriptors::Descriptor,
     flags::{ClassAccessFlags, FieldAccessFlags, MethodAccessFlags},
 };
 
@@ -32,7 +33,7 @@ pub struct ClassFile {
 #[derive(Debug)]
 pub struct Field {
     pub name: String,
-    pub descriptor: String,
+    pub descriptor: Descriptor,
     pub access_flags: FieldAccessFlags,
     pub attributes: Vec<Attribute>,
 }
@@ -41,7 +42,7 @@ pub struct Field {
 pub struct Method {
     pub access_flags: MethodAccessFlags,
     pub name: String,
-    pub descriptor: String,
+    pub descriptor: Vec<Descriptor>,
     pub attributes: Vec<Attribute>,
 }
 

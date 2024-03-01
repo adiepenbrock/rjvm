@@ -8,6 +8,7 @@ pub mod fields;
 pub mod methods;
 
 mod buffer;
+mod descriptors;
 pub mod instructions;
 
 pub use crate::decoder::buffer::BufferedReader;
