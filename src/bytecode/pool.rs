@@ -114,6 +114,12 @@ pub struct ConstantPool {
     entries: HashMap<ConstantPoolIndex, ConstantPoolEntry>,
 }
 
+impl Default for ConstantPool {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConstantPool {
     pub fn new() -> Self {
         Self {
@@ -170,9 +176,7 @@ impl ConstantPool {
             ConstantPoolEntry::Utf8 { bytes, .. } => {
                 Some(String::from_utf8(bytes.clone()).unwrap())
             }
-            ConstantPoolEntry::String { string_index } => {
-                self.text_of(ConstantPoolIndex::from(*string_index))
-            }
+            ConstantPoolEntry::String { string_index } => self.text_of(*string_index),
             ConstantPoolEntry::Integer { bytes } => Some(bytes.to_string()),
             ConstantPoolEntry::Float { bytes } => Some(bytes.to_string()),
             ConstantPoolEntry::MethodRef {
@@ -180,28 +184,26 @@ impl ConstantPool {
                 name_and_type_index,
             } => Some(format!(
                 "{}.{}",
-                self.text_of(ConstantPoolIndex::from(*class_index))?,
-                self.text_of(ConstantPoolIndex::from(*name_and_type_index))?
+                self.text_of(*class_index)?,
+                self.text_of(*name_and_type_index)?
             )),
             ConstantPoolEntry::InterfaceMethodRef {
                 class_index,
                 name_and_type_index,
             } => Some(format!(
                 "{}.{}",
-                self.text_of(ConstantPoolIndex::from(*class_index))?,
-                self.text_of(ConstantPoolIndex::from(*name_and_type_index))?
+                self.text_of(*class_index)?,
+                self.text_of(*name_and_type_index)?
             )),
             ConstantPoolEntry::NameAndType {
                 name_index,
                 descriptor_index,
             } => Some(format!(
                 "{}: {}",
-                self.text_of(ConstantPoolIndex::from(*name_index))?,
-                self.text_of(ConstantPoolIndex::from(*descriptor_index))?
+                self.text_of(*name_index)?,
+                self.text_of(*descriptor_index)?
             )),
-            ConstantPoolEntry::Class { name_index } => {
-                self.text_of(ConstantPoolIndex::from(*name_index))
-            }
+            ConstantPoolEntry::Class { name_index } => self.text_of(*name_index),
             _ => None,
         }
     }

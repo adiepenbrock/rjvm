@@ -1,6 +1,6 @@
 use rjvm::bytecode::pool::ConstantPool;
-use rjvm::bytecode::reader::BufferedReader;
 use rjvm::bytecode::reader::containers::read_classfile;
+use rjvm::bytecode::reader::BufferedReader;
 
 fn main() {
     let input = include_bytes!("./testdata/org/example/Simple.class");

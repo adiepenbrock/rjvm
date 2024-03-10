@@ -1,4 +1,8 @@
-use crate::bytecode::{BytecodeError, pool::{ConstantPool, ConstantPoolEntry, ConstantPoolIndex, ConstantTag}, reader::BufferedReader};
+use crate::bytecode::{
+    pool::{ConstantPool, ConstantPoolEntry, ConstantPoolIndex, ConstantTag},
+    reader::BufferedReader,
+    BytecodeError,
+};
 
 pub fn read_constant_pool_entry(
     reader: &mut BufferedReader,

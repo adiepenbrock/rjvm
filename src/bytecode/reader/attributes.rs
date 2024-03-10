@@ -287,6 +287,7 @@ fn read_typeannotationtarget_info(
     Ok(TypeAnnotationTargetInfo { target_info })
 }
 
+#[allow(clippy::only_used_in_recursion)]
 fn read_elementvalue(
     reader: &mut BufferedReader,
     cp: &mut ConstantPool,
