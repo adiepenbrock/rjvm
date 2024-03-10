@@ -1,4 +1,4 @@
-use crate::types::descriptors::{BaseType, Descriptor, DescriptorKind, FieldType};
+use crate::bytecode::{BaseType, Descriptor, DescriptorKind, FieldType};
 
 impl Descriptor {
     /// ```text
@@ -113,7 +113,10 @@ pub(crate) fn parse_field_type(chars: &mut Vec<char>) -> Option<FieldType> {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::types::descriptors::{BaseType, Descriptor, DescriptorKind, FieldType};
+    use crate::bytecode::{
+        descriptors::{BaseType, Descriptor, DescriptorKind, FieldType},
+        BaseType, Descriptor, DescriptorKind, FieldType,
+    };
 
     #[test]
     fn test_parse_field_descriptor() {

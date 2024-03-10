@@ -1,98 +1,94 @@
+use crate::bytecode::BytecodeError;
+
 pub trait FromBytes: Sized {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError>;
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError>;
 }
 
 impl FromBytes for u8 {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError> {
         if bytes.len() != std::mem::size_of::<u8>() {
-            return Err(BufferedReaderError::InvalidData);
+            return Err(BytecodeError::InvalidData);
         }
         Ok(bytes[0])
     }
 }
 
 impl FromBytes for u16 {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError> {
         if bytes.len() != std::mem::size_of::<u16>() {
-            return Err(BufferedReaderError::InvalidData);
+            return Err(BytecodeError::InvalidData);
         }
         Ok(u16::from_be_bytes([bytes[0], bytes[1]]))
     }
 }
 
 impl FromBytes for u32 {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError> {
         if bytes.len() != std::mem::size_of::<u32>() {
-            return Err(BufferedReaderError::InvalidData);
+            return Err(BytecodeError::InvalidData);
         }
         Ok(u32::from_be_bytes(bytes.try_into().unwrap()))
     }
 }
 
 impl FromBytes for i8 {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError> {
         if bytes.len() != std::mem::size_of::<i8>() {
-            return Err(BufferedReaderError::InvalidData);
+            return Err(BytecodeError::InvalidData);
         }
         Ok(i8::from_be_bytes([bytes[0]]))
     }
 }
 
 impl FromBytes for i16 {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError> {
         if bytes.len() != std::mem::size_of::<i16>() {
-            return Err(BufferedReaderError::InvalidData);
+            return Err(BytecodeError::InvalidData);
         }
         Ok(i16::from_be_bytes([bytes[0], bytes[1]]))
     }
 }
 
 impl FromBytes for i32 {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError> {
         if bytes.len() != std::mem::size_of::<i32>() {
-            return Err(BufferedReaderError::InvalidData);
+            return Err(BytecodeError::InvalidData);
         }
         Ok(i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
     }
 }
 
 impl FromBytes for i64 {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError> {
         if bytes.len() != std::mem::size_of::<i64>() {
-            return Err(BufferedReaderError::InvalidData);
+            return Err(BytecodeError::InvalidData);
         }
         Ok(i64::from_be_bytes(bytes.try_into().unwrap()))
     }
 }
 
 impl FromBytes for f32 {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError> {
         if bytes.len() != std::mem::size_of::<f32>() {
-            return Err(BufferedReaderError::InvalidData);
+            return Err(BytecodeError::InvalidData);
         }
         Ok(f32::from_be_bytes(bytes.try_into().unwrap()))
     }
 }
 
 impl FromBytes for f64 {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError> {
         if bytes.len() != std::mem::size_of::<f64>() {
-            return Err(BufferedReaderError::InvalidData);
+            return Err(BytecodeError::InvalidData);
         }
         Ok(f64::from_be_bytes(bytes.try_into().unwrap()))
     }
 }
 
 impl FromBytes for Vec<u8> {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferedReaderError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BytecodeError> {
         Ok(bytes.to_vec())
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum BufferedReaderError {
-    UnexpectedEndOfData,
-    InvalidData,
 }
 
 #[derive(Debug, Clone)]
@@ -111,9 +107,9 @@ impl<'a> BufferedReader<'a> {
         }
     }
 
-    fn advance(&mut self, n: usize) -> Result<&'a [u8], BufferedReaderError> {
+    fn advance(&mut self, n: usize) -> Result<&'a [u8], BytecodeError> {
         if self.position + n > self.size {
-            Err(BufferedReaderError::UnexpectedEndOfData)
+            Err(BytecodeError::UnexpectedEndOfData)
         } else {
             let slice = &self.data[self.position..self.position + n];
             self.position += n;
@@ -121,7 +117,7 @@ impl<'a> BufferedReader<'a> {
         }
     }
 
-    pub fn take<T>(&mut self) -> Result<T, BufferedReaderError>
+    pub fn take<T>(&mut self) -> Result<T, BytecodeError>
     where
         T: FromBytes,
     {
@@ -130,7 +126,7 @@ impl<'a> BufferedReader<'a> {
         T::from_bytes(slice)
     }
 
-    pub fn peek_bytes<T>(&self) -> Result<T, BufferedReaderError>
+    pub fn peek_bytes<T>(&self) -> Result<T, BytecodeError>
     where
         T: FromBytes,
     {
@@ -139,7 +135,7 @@ impl<'a> BufferedReader<'a> {
         T::from_bytes(slice)
     }
 
-    pub fn take_bytes(&mut self, length: usize) -> Result<&'a [u8], BufferedReaderError> {
+    pub fn take_bytes(&mut self, length: usize) -> Result<&'a [u8], BytecodeError> {
         self.advance(length)
     }
 
@@ -153,7 +149,7 @@ impl<'a> BufferedReader<'a> {
         self.position
     }
 
-    /// Indicates whether the buffer has remaining data to be read.
+    /// Indicates whether the reader has remaining data to be read.
     pub fn has_remaining_data(&self) -> bool {
         self.position == self.data.len()
     }

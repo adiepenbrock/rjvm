@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::bytecode::{BytecodeError, Result};
+use crate::bytecode::BytecodeError;
 
 /// The constant pool index is a 1-based index used to reference items in the [`ConstantPool`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -33,30 +33,30 @@ impl ConstantPoolIndex {
 pub enum ConstantPoolEntry {
     /// The `CONSTANT_Class_info` constant is used to represent a class or an interface.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.1>
-    Class { name_index: u16 },
+    Class { name_index: ConstantPoolIndex },
     /// The `CONSTANT_Fieldref_info` constant is used to represent a reference to a field.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.2>
     FieldRef {
-        class_index: u16,
-        name_and_type_index: u16,
+        class_index: ConstantPoolIndex,
+        name_and_type_index: ConstantPoolIndex,
     },
     /// The `CONSTANT_Methodref_info` constant is used to represent a reference to a method.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.2>
     MethodRef {
-        class_index: u16,
-        name_and_type_index: u16,
+        class_index: ConstantPoolIndex,
+        name_and_type_index: ConstantPoolIndex,
     },
     /// The `CONSTANT_InterfaceMethodref_info` constant is used to represent a reference to an
     /// interface method.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.2>
     InterfaceMethodRef {
-        class_index: u16,
-        name_and_type_index: u16,
+        class_index: ConstantPoolIndex,
+        name_and_type_index: ConstantPoolIndex,
     },
     /// The `CONSTANT_String_info` constant is used to represent constant objects of the
     /// type `String`
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.3>
-    String { string_index: u16 },
+    String { string_index: ConstantPoolIndex },
     /// The `CONSTANT_Integer_info` constant is used to represent 4-byte numeric (int) constants.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.4>
     Integer { bytes: i32 },
@@ -73,8 +73,8 @@ pub enum ConstantPoolEntry {
     /// indicating which class or interface type it belongs to.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.6>
     NameAndType {
-        name_index: u16,
-        descriptor_index: u16,
+        name_index: ConstantPoolIndex,
+        descriptor_index: ConstantPoolIndex,
     },
     /// The `CONSTANT_Utf8_info` constant is used to represent constant string values.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.7>
@@ -83,30 +83,30 @@ pub enum ConstantPoolEntry {
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.8>
     MethodHandle {
         reference_kind: u8,
-        reference_index: u16,
+        reference_index: ConstantPoolIndex,
     },
     /// The `CONSTANT_MethodType_info` constant is used to represent a method type.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.9>
-    MethodType { descriptor_index: u16 },
+    MethodType { descriptor_index: ConstantPoolIndex },
     /// The `CONSTANT_Dynamic_info` constant is used to represent a dynamically-computed constant.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.10>
     Dynamic {
-        bootstrap_method_attr_index: u16,
-        name_and_type_index: u16,
+        bootstrap_method_attr_index: ConstantPoolIndex,
+        name_and_type_index: ConstantPoolIndex,
     },
     /// The `CONSTANT_InvokeDynamic_info` constant is used to represent an invokedynamic call site.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.10>
     InvokeDynamic {
-        bootstrap_method_attr_index: u16,
-        name_and_type_index: u16,
+        bootstrap_method_attr_index: ConstantPoolIndex,
+        name_and_type_index: ConstantPoolIndex,
     },
     /// The `CONSTANT_Module_info` constant is used to represent a module.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.11>
-    Module { name_index: u16 },
+    Module { name_index: ConstantPoolIndex },
     /// The `CONSTANT_Package_info` constant is used to represent a package exported or opened
     /// by a module.
     /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.12>
-    Package { name_index: u16 },
+    Package { name_index: ConstantPoolIndex },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -123,8 +123,12 @@ impl ConstantPool {
 
     /// Insert a new entry into the [ConstantPool] at the given index. If the index is already
     /// present in the [ConstantPool], this function will return an error.
-    pub fn insert(&mut self, index: ConstantPoolIndex, value: ConstantPoolEntry) -> Result<()> {
-        if !self.entries.contains_key(&index) {
+    pub fn insert(
+        &mut self,
+        index: ConstantPoolIndex,
+        value: ConstantPoolEntry,
+    ) -> Result<(), BytecodeError> {
+        if self.entries.contains_key(&index) {
             return Err(BytecodeError::ConstantPoolEntryAlreadyExists);
         }
 
@@ -198,6 +202,107 @@ impl ConstantPool {
             ConstantPoolEntry::Class { name_index } => {
                 self.text_of(ConstantPoolIndex::from(*name_index))
             }
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ConstantTag {
+    /// The `CONSTANT_Class_info` constnat is used to represent a class or an interface.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.1>
+    Class,
+    /// The `CONSTANT_Fieldref_info` constant is used to represent a reference to a field.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.2>
+    FieldRef,
+    /// The `CONSTANT_Methodref_info` constant is used to represent a reference to a method.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.2>
+    MethodRef,
+    /// The `CONSTANT_InterfaceMethodref_info` constant is used to represent a reference to an
+    /// interface method.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.2>
+    InterfaceMethodRef,
+    /// The `CONSTANT_String_info` constant is used to represent constant objects of the
+    /// type `String`
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.3>
+    String,
+    /// The `CONSTANT_Integer_info` constant is used to represent 4-byte numeric (int) constants.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.4>
+    Integer,
+    /// The `CONSTANT_Float_info` constant is used to represent 4-byte floating-point constants.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.4>
+    Float,
+    /// The `CONSTANT_Long_info` constant is used to represent 8-byte numeric (long) constants.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.5>
+    Long,
+    /// The `CONSTANT_Double_info` constant is used to represent 8-byte numeric (double) constants.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.5>
+    Double,
+    /// The `CONSTANT_NameAndType_info` constant is used to represent a field or method, without
+    /// indicating which class or interface type it belongs to.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.6>
+    NameAndType,
+    /// The `CONSTANT_Utf8_info` constant is used to represent constant string values.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.7>
+    Utf8,
+    /// The `CONSTANT_MethodHandle_info` constant is used to represent a method handle.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.8>
+    MethodHandle,
+    /// The `CONSTANT_MethodType_info` constant is used to represent a method type.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.9>
+    MethodType,
+    /// The `CONSTANT_Dynamic_info` constant is used to represent a dynamically-computed constant.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.10>
+    Dynamic,
+    /// The `CONSTANT_InvokeDynamic_info` constant is used to represent an invokedynamic call site.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.10>
+    InvokeDynamic,
+    /// The `CONSTANT_Module_info` constant is used to represent a module.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.11>
+    Module,
+    /// The `CONSTANT_Package_info` constant is used to represent a package exported or opened
+    /// by a module.
+    /// <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.12>
+    Package,
+}
+
+impl ConstantTag {
+    pub fn from_tag(tag: u8) -> Option<ConstantTag> {
+        match tag {
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.1>
+            1 => Some(ConstantTag::Utf8),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.4>
+            3 => Some(ConstantTag::Integer),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.4>
+            4 => Some(ConstantTag::Float),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.5>
+            5 => Some(ConstantTag::Long),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.5>
+            6 => Some(ConstantTag::Double),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.1>
+            7 => Some(ConstantTag::Class),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.3>
+            8 => Some(ConstantTag::String),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.2>
+            9 => Some(ConstantTag::FieldRef),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.2>
+            10 => Some(ConstantTag::MethodRef),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.2>
+            11 => Some(ConstantTag::InterfaceMethodRef),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.6>
+            12 => Some(ConstantTag::NameAndType),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.8>
+            15 => Some(ConstantTag::MethodHandle),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.9>
+            16 => Some(ConstantTag::MethodType),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.10>
+            17 => Some(ConstantTag::Dynamic),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.10>
+            18 => Some(ConstantTag::InvokeDynamic),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.11>
+            19 => Some(ConstantTag::Module),
+            // <https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.12>
+            20 => Some(ConstantTag::Package),
             _ => None,
         }
     }

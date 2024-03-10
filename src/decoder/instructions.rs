@@ -1,4 +1,5 @@
-use crate::{decoder::BufferedReader, types::instructions::Instruction};
+use crate::{types::instructions::Instruction};
+use crate::bytecode::reader::BufferedReader;
 
 pub fn parse_instruction(op: u8, buffer: &mut BufferedReader) -> Option<Instruction> {
     match op {
