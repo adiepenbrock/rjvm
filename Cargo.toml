@@ -1,6 +1,6 @@
 [package]
 name = "rjvm"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Andreas Diepenbrock"]
 description = "Parse JVM class files with Rust"
 categories = ["parser-implementations"]
@@ -10,7 +10,7 @@ license = "MIT"
 keywords = ["jvm", "java"]
 
 [dependencies]
-bitflags = "2.4.2"
+bitflags = "2.5.0"
 
 [features]
 default = ["decoder"]
