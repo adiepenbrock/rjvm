@@ -1,4 +1,5 @@
-use crate::types::descriptors::{BaseType, Descriptor, DescriptorKind, FieldType};
+use super::BytecodeError;
+use crate::bytecode::{BaseType, Descriptor, DescriptorKind, FieldType};
 
 impl Descriptor {
     /// ```text
@@ -72,13 +73,16 @@ impl Descriptor {
     /// ComponentType:
     ///     FieldType
     /// ```
-    pub fn parse_from_field(descriptor: String) -> Option<Descriptor> {
+    pub fn parse_from_field(descriptor: String) -> Result<Descriptor, BytecodeError> {
         let mut chars = descriptor.chars().collect::<Vec<char>>();
         chars.reverse();
-        let ty = parse_field_type(&mut chars);
-        Some(Descriptor {
+        let ty = match parse_field_type(&mut chars) {
+            Some(ty) => ty,
+            None => return Err(BytecodeError::InvalidDescriptor),
+        };
+        Ok(Descriptor {
             kind: DescriptorKind::Type,
-            ty: ty.unwrap(),
+            ty,
         })
     }
 }
@@ -113,7 +117,7 @@ pub(crate) fn parse_field_type(chars: &mut Vec<char>) -> Option<FieldType> {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::types::descriptors::{BaseType, Descriptor, DescriptorKind, FieldType};
+    use crate::bytecode::descriptors::{BaseType, Descriptor, DescriptorKind, FieldType};
 
     #[test]
     fn test_parse_field_descriptor() {
@@ -145,7 +149,7 @@ pub mod tests {
 
         for (idx, t) in input.iter().enumerate() {
             let ret = Descriptor::parse_from_field(t.to_string());
-            assert!(ret.is_some());
+            assert!(ret.is_ok());
             assert_eq!(ret.unwrap().ty, expected[idx]);
         }
     }
