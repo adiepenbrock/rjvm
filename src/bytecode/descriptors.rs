@@ -1,5 +1,7 @@
 use crate::bytecode::{BaseType, Descriptor, DescriptorKind, FieldType};
 
+use super::BytecodeError;
+
 impl Descriptor {
     /// ```text
     /// MethodDescriptor:
@@ -72,13 +74,16 @@ impl Descriptor {
     /// ComponentType:
     ///     FieldType
     /// ```
-    pub fn parse_from_field(descriptor: String) -> Option<Descriptor> {
+    pub fn parse_from_field(descriptor: String) -> Result<Descriptor, BytecodeError> {
         let mut chars = descriptor.chars().collect::<Vec<char>>();
         chars.reverse();
-        let ty = parse_field_type(&mut chars);
-        Some(Descriptor {
+        let ty = match parse_field_type(&mut chars) {
+            Some(ty) => ty,
+            None => return Err(BytecodeError::InvalidDescriptor),
+        };
+        Ok(Descriptor {
             kind: DescriptorKind::Type,
-            ty: ty.unwrap(),
+            ty,
         })
     }
 }

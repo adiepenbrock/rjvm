@@ -443,73 +443,73 @@ fn read_stackmaptable_info(
     let mut entries = Vec::with_capacity(number_of_entries as usize);
     for _ in 0..number_of_entries {
         let entry = match frame_type {
-            0..=63 => Some(StackMapFrame::SameFrame { frame_type }),
+            0..=63 => StackMapFrame::SameFrame { frame_type },
             64..=127 => {
                 let verification_type = reader.take::<u8>()?;
                 let verification_type = match verification_type {
-                    0 => Some(VerificationTypeInfo::Top),
-                    1 => Some(VerificationTypeInfo::Integer),
-                    2 => Some(VerificationTypeInfo::Float),
-                    3 => Some(VerificationTypeInfo::Double),
-                    4 => Some(VerificationTypeInfo::Long),
-                    5 => Some(VerificationTypeInfo::Null),
-                    6 => Some(VerificationTypeInfo::UninitializedThis),
+                    0 => VerificationTypeInfo::Top,
+                    1 => VerificationTypeInfo::Integer,
+                    2 => VerificationTypeInfo::Float,
+                    3 => VerificationTypeInfo::Double,
+                    4 => VerificationTypeInfo::Long,
+                    5 => VerificationTypeInfo::Null,
+                    6 => VerificationTypeInfo::UninitializedThis,
                     7 => {
                         let class = reader.take::<u16>()?;
-                        Some(VerificationTypeInfo::Object { class })
+                        VerificationTypeInfo::Object { class }
                     }
                     8 => {
                         let offset = reader.take::<u16>()?;
-                        Some(VerificationTypeInfo::Uninitialized { offset })
+                        VerificationTypeInfo::Uninitialized { offset }
                     }
-                    _ => None,
+                    _ => return Err(BytecodeError::UnsupportedVerificationType),
                 };
-                Some(StackMapFrame::SameLocals1StackItemFrame {
+                StackMapFrame::SameLocals1StackItemFrame {
                     frame_type,
-                    stack: verification_type.unwrap(),
-                })
+                    stack: verification_type,
+                }
             }
             247 => {
                 let offset_delta = reader.take::<u16>()?;
                 let verification_type = reader.take::<u8>()?;
                 let verification_type = match verification_type {
-                    0 => Some(VerificationTypeInfo::Top),
-                    1 => Some(VerificationTypeInfo::Integer),
-                    2 => Some(VerificationTypeInfo::Float),
-                    3 => Some(VerificationTypeInfo::Double),
-                    4 => Some(VerificationTypeInfo::Long),
-                    5 => Some(VerificationTypeInfo::Null),
-                    6 => Some(VerificationTypeInfo::UninitializedThis),
+                    0 => VerificationTypeInfo::Top,
+                    1 => VerificationTypeInfo::Integer,
+                    2 => VerificationTypeInfo::Float,
+                    3 => VerificationTypeInfo::Double,
+                    4 => VerificationTypeInfo::Long,
+                    5 => VerificationTypeInfo::Null,
+                    6 => VerificationTypeInfo::UninitializedThis,
                     7 => {
                         let class = reader.take::<u16>()?;
-                        Some(VerificationTypeInfo::Object { class })
+                        VerificationTypeInfo::Object { class }
                     }
                     8 => {
                         let offset = reader.take::<u16>()?;
-                        Some(VerificationTypeInfo::Uninitialized { offset })
+                        VerificationTypeInfo::Uninitialized { offset }
                     }
-                    _ => None,
+                    _ => return Err(BytecodeError::UnsupportedVerificationType),
                 };
 
-                Some(StackMapFrame::SameLocals1StackItemFrameExtended {
+                StackMapFrame::SameLocals1StackItemFrameExtended {
                     frame_type,
                     offset_delta,
-                    stack: verification_type.unwrap(),
-                })
+                    stack: verification_type,
+                }
             }
             248..=250 => {
                 let offset_delta = reader.take::<u16>()?;
-                Some(StackMapFrame::ChopFrame {
+                StackMapFrame::ChopFrame {
                     frame_type,
                     offset_delta,
-                })
+                }
             }
             251 => {
                 let offset_delta = reader.take::<u16>()?;
-                Some(StackMapFrame::SameFrameExtended {
+                StackMapFrame::SameFrameExtended {
                     frame_type,
                     offset_delta,
-                })
+                }
             }
             252..=254 => {
                 let offset_delta = reader.take::<u16>()?;
@@ -517,30 +517,30 @@ fn read_stackmaptable_info(
                 for _ in 0..frame_type - 251 {
                     let verification_type = reader.take::<u8>()?;
                     let verification_type = match verification_type {
-                        0 => Some(VerificationTypeInfo::Top),
-                        1 => Some(VerificationTypeInfo::Integer),
-                        2 => Some(VerificationTypeInfo::Float),
-                        3 => Some(VerificationTypeInfo::Double),
-                        4 => Some(VerificationTypeInfo::Long),
-                        5 => Some(VerificationTypeInfo::Null),
-                        6 => Some(VerificationTypeInfo::UninitializedThis),
+                        0 => VerificationTypeInfo::Top,
+                        1 => VerificationTypeInfo::Integer,
+                        2 => VerificationTypeInfo::Float,
+                        3 => VerificationTypeInfo::Double,
+                        4 => VerificationTypeInfo::Long,
+                        5 => VerificationTypeInfo::Null,
+                        6 => VerificationTypeInfo::UninitializedThis,
                         7 => {
                             let class = reader.take::<u16>()?;
-                            Some(VerificationTypeInfo::Object { class })
+                            VerificationTypeInfo::Object { class }
                         }
                         8 => {
                             let offset = reader.take::<u16>()?;
-                            Some(VerificationTypeInfo::Uninitialized { offset })
+                            VerificationTypeInfo::Uninitialized { offset }
                         }
-                        _ => None,
+                        _ => return Err(BytecodeError::UnsupportedVerificationType),
                     };
-                    locals.push(verification_type.unwrap());
+                    locals.push(verification_type);
                 }
-                Some(StackMapFrame::AppendFrame {
+                StackMapFrame::AppendFrame {
                     frame_type,
                     offset_delta,
                     locals,
-                })
+                }
             }
             255 => {
                 let offset_delta = reader.take::<u16>()?;
@@ -549,62 +549,62 @@ fn read_stackmaptable_info(
                 for _ in 0..number_of_locals {
                     let verification_type = reader.take::<u8>()?;
                     let verification_type = match verification_type {
-                        0 => Some(VerificationTypeInfo::Top),
-                        1 => Some(VerificationTypeInfo::Integer),
-                        2 => Some(VerificationTypeInfo::Float),
-                        3 => Some(VerificationTypeInfo::Double),
-                        4 => Some(VerificationTypeInfo::Long),
-                        5 => Some(VerificationTypeInfo::Null),
-                        6 => Some(VerificationTypeInfo::UninitializedThis),
+                        0 => VerificationTypeInfo::Top,
+                        1 => VerificationTypeInfo::Integer,
+                        2 => VerificationTypeInfo::Float,
+                        3 => VerificationTypeInfo::Double,
+                        4 => VerificationTypeInfo::Long,
+                        5 => VerificationTypeInfo::Null,
+                        6 => VerificationTypeInfo::UninitializedThis,
                         7 => {
                             let class = reader.take::<u16>()?;
-                            Some(VerificationTypeInfo::Object { class })
+                            VerificationTypeInfo::Object { class }
                         }
                         8 => {
                             let offset = reader.take::<u16>()?;
-                            Some(VerificationTypeInfo::Uninitialized { offset })
+                            VerificationTypeInfo::Uninitialized { offset }
                         }
-                        _ => None,
+                        _ => return Err(BytecodeError::UnsupportedVerificationType),
                     };
-                    locals.push(verification_type.unwrap());
+                    locals.push(verification_type);
                 }
                 let number_of_stack_items = reader.take::<u16>()?;
                 let mut stack = Vec::with_capacity(number_of_stack_items as usize);
                 for _ in 0..number_of_stack_items {
                     let verification_type = reader.take::<u8>()?;
                     let verification_type = match verification_type {
-                        0 => Some(VerificationTypeInfo::Top),
-                        1 => Some(VerificationTypeInfo::Integer),
-                        2 => Some(VerificationTypeInfo::Float),
-                        3 => Some(VerificationTypeInfo::Double),
-                        4 => Some(VerificationTypeInfo::Long),
-                        5 => Some(VerificationTypeInfo::Null),
-                        6 => Some(VerificationTypeInfo::UninitializedThis),
+                        0 => VerificationTypeInfo::Top,
+                        1 => VerificationTypeInfo::Integer,
+                        2 => VerificationTypeInfo::Float,
+                        3 => VerificationTypeInfo::Double,
+                        4 => VerificationTypeInfo::Long,
+                        5 => VerificationTypeInfo::Null,
+                        6 => VerificationTypeInfo::UninitializedThis,
                         7 => {
                             let class = reader.take::<u16>()?;
-                            Some(VerificationTypeInfo::Object { class })
+                            VerificationTypeInfo::Object { class }
                         }
                         8 => {
                             let offset = reader.take::<u16>()?;
-                            Some(VerificationTypeInfo::Uninitialized { offset })
+                            VerificationTypeInfo::Uninitialized { offset }
                         }
-                        _ => None,
+                        _ => return Err(BytecodeError::UnsupportedVerificationType),
                     };
-                    stack.push(verification_type.unwrap());
+                    stack.push(verification_type);
                 }
-                Some(StackMapFrame::FullFrame {
+                StackMapFrame::FullFrame {
                     frame_type,
                     number_of_locals,
                     number_of_stack_items,
                     offset_delta,
                     locals,
                     stack,
-                })
+                }
             }
-            _ => None,
+            _ => return Err(BytecodeError::InvalidData),
         };
 
-        entries.push(entry.unwrap());
+        entries.push(entry);
     }
 
     Ok(StackMapTableInfo {
@@ -649,8 +649,11 @@ fn read_innerclasses_info(
         let outer_class_info_index = reader.take::<u16>()?;
         let inner_name_index = reader.take::<u16>()?;
         let inner_class_access_flags = reader.take::<u16>()?;
-        let inner_class_access_flags =
-            InnerClassAccessFlags::from_bits(inner_class_access_flags).unwrap();
+        let Some(inner_class_access_flags) =
+            InnerClassAccessFlags::from_bits(inner_class_access_flags)
+        else {
+            return Err(BytecodeError::InvalidData);
+        };
         classes.push(InnerClass {
             inner_class_info_index: ConstantPoolIndex::new(inner_class_info_index),
             outer_class_info_index: ConstantPoolIndex::new(outer_class_info_index),
@@ -1063,7 +1066,7 @@ fn read_module_info(
         });
     }
 
-    let exports_count = reader.take::<u16>().unwrap();
+    let exports_count = reader.take::<u16>()?;
     let mut exports = Vec::with_capacity(exports_count as usize);
     for _ in 0..exports_count {
         let exports_index = reader.take::<u16>()?;

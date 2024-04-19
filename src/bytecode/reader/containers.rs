@@ -102,7 +102,9 @@ pub fn read_field(
     cp: &mut ConstantPool,
 ) -> Result<Field, BytecodeError> {
     let access_flags = reader.take::<u16>()?;
-    let access_flags = FieldAccessFlags::from_bits(access_flags).unwrap();
+    let Some(access_flags) = FieldAccessFlags::from_bits(access_flags) else {
+        return Err(BytecodeError::InvalidClassFile);
+    };
 
     let name_index = reader.take::<u16>()?;
     let Some(name) = cp.text_of(name_index.into()) else {
@@ -110,7 +112,9 @@ pub fn read_field(
     };
 
     let descriptor_index = reader.take::<u16>()?;
-    let descriptor = cp.text_of(descriptor_index.into()).unwrap();
+    let Some(descriptor) = cp.text_of(descriptor_index.into()) else {
+        return Err(BytecodeError::InvalidClassFile);
+    };
     let descriptor = Descriptor::parse_from_field(descriptor).unwrap_or(Descriptor {
         kind: DescriptorKind::Type,
         ty: FieldType::Base(BaseType::Void),
@@ -136,7 +140,9 @@ pub fn read_method(
     cp: &mut ConstantPool,
 ) -> Result<Method, BytecodeError> {
     let access_flags = reader.take::<u16>()?;
-    let access_flags = MethodAccessFlags::from_bits(access_flags).unwrap();
+    let Some(access_flags) = MethodAccessFlags::from_bits(access_flags) else {
+        return Err(BytecodeError::InvalidClassFile);
+    };
 
     let name_index = reader.take::<u16>()?;
     let Some(name) = cp.text_of(name_index.into()) else {

@@ -174,7 +174,11 @@ impl ConstantPool {
 
         match entry {
             ConstantPoolEntry::Utf8 { bytes, .. } => {
-                Some(String::from_utf8(bytes.clone()).unwrap())
+                let str = match String::from_utf8(bytes.clone()) {
+                    Ok(str) => str,
+                    Err(_) => return None,
+                };
+                Some(str)
             }
             ConstantPoolEntry::String { string_index } => self.text_of(*string_index),
             ConstantPoolEntry::Integer { bytes } => Some(bytes.to_string()),

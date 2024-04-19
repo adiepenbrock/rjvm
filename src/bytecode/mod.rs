@@ -18,6 +18,9 @@ pub enum BytecodeError {
     InvalidClassFile,
     UnexpectedEndOfData,
     InvalidData,
+    UnsupportedInstruction,
+    InvalidDescriptor,
+    UnsupportedVerificationType,
 }
 
 #[derive(Debug)]

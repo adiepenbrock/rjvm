@@ -27,7 +27,9 @@ impl FromBytes for u32 {
         if bytes.len() != std::mem::size_of::<u32>() {
             return Err(BytecodeError::InvalidData);
         }
-        Ok(u32::from_be_bytes(bytes.try_into().unwrap()))
+        // TODO: we should find a better way to convert bytes to u32 without
+        // converting it by hand...
+        Ok(u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
     }
 }
 
@@ -63,7 +65,9 @@ impl FromBytes for i64 {
         if bytes.len() != std::mem::size_of::<i64>() {
             return Err(BytecodeError::InvalidData);
         }
-        Ok(i64::from_be_bytes(bytes.try_into().unwrap()))
+        Ok(i64::from_be_bytes([
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+        ]))
     }
 }
 
@@ -72,7 +76,7 @@ impl FromBytes for f32 {
         if bytes.len() != std::mem::size_of::<f32>() {
             return Err(BytecodeError::InvalidData);
         }
-        Ok(f32::from_be_bytes(bytes.try_into().unwrap()))
+        Ok(f32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
     }
 }
 
@@ -81,7 +85,9 @@ impl FromBytes for f64 {
         if bytes.len() != std::mem::size_of::<f64>() {
             return Err(BytecodeError::InvalidData);
         }
-        Ok(f64::from_be_bytes(bytes.try_into().unwrap()))
+        Ok(f64::from_be_bytes([
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+        ]))
     }
 }
 
