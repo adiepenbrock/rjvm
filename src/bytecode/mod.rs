@@ -1,8 +1,6 @@
-use crate::bytecode::{
-    attributes::Attribute,
-    flags::{ClassAccessFlags, FieldAccessFlags, MethodAccessFlags},
-    pool::{ConstantPool, ConstantPoolIndex},
-};
+use crate::bytecode::attributes::Attribute;
+use crate::bytecode::flags::{ClassAccessFlags, FieldAccessFlags, MethodAccessFlags};
+use crate::bytecode::pool::{ConstantPool, ConstantPoolIndex};
 
 pub mod attributes;
 pub mod descriptors;

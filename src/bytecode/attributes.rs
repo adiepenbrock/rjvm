@@ -1,4 +1,5 @@
-use crate::bytecode::{flags::InnerClassAccessFlags, pool::ConstantPoolIndex};
+use crate::bytecode::flags::InnerClassAccessFlags;
+use crate::bytecode::pool::ConstantPoolIndex;
 
 #[derive(Debug)]
 pub enum Attribute {
@@ -96,7 +97,7 @@ pub enum VerificationTypeInfo {
     UninitializedThis,
     Object {
         /// An index into the constant pool for the class of the object
-        class: u16,
+        class: ConstantPoolIndex,
     },
     Uninitialized {
         /// Offset into associated code array of a new instruction

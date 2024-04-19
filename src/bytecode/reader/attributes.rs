@@ -14,8 +14,9 @@ use crate::bytecode::attributes::{
     TypeAnnotationTargetInfoType, TypePath, TypePathEntry, VerificationTypeInfo,
 };
 use crate::bytecode::flags::InnerClassAccessFlags;
-use crate::bytecode::pool::ConstantPoolIndex;
-use crate::bytecode::{pool::ConstantPool, reader::BufferedReader, BytecodeError};
+use crate::bytecode::pool::{ConstantPool, ConstantPoolIndex};
+use crate::bytecode::reader::BufferedReader;
+use crate::bytecode::BytecodeError;
 
 pub fn read_attribute(
     reader: &mut BufferedReader,
@@ -456,7 +457,9 @@ fn read_stackmaptable_info(
                     6 => VerificationTypeInfo::UninitializedThis,
                     7 => {
                         let class = reader.take::<u16>()?;
-                        VerificationTypeInfo::Object { class }
+                        VerificationTypeInfo::Object {
+                            class: class.into(),
+                        }
                     }
                     8 => {
                         let offset = reader.take::<u16>()?;
@@ -482,7 +485,9 @@ fn read_stackmaptable_info(
                     6 => VerificationTypeInfo::UninitializedThis,
                     7 => {
                         let class = reader.take::<u16>()?;
-                        VerificationTypeInfo::Object { class }
+                        VerificationTypeInfo::Object {
+                            class: class.into(),
+                        }
                     }
                     8 => {
                         let offset = reader.take::<u16>()?;
@@ -526,7 +531,9 @@ fn read_stackmaptable_info(
                         6 => VerificationTypeInfo::UninitializedThis,
                         7 => {
                             let class = reader.take::<u16>()?;
-                            VerificationTypeInfo::Object { class }
+                            VerificationTypeInfo::Object {
+                                class: class.into(),
+                            }
                         }
                         8 => {
                             let offset = reader.take::<u16>()?;
@@ -558,7 +565,9 @@ fn read_stackmaptable_info(
                         6 => VerificationTypeInfo::UninitializedThis,
                         7 => {
                             let class = reader.take::<u16>()?;
-                            VerificationTypeInfo::Object { class }
+                            VerificationTypeInfo::Object {
+                                class: class.into(),
+                            }
                         }
                         8 => {
                             let offset = reader.take::<u16>()?;
@@ -582,7 +591,9 @@ fn read_stackmaptable_info(
                         6 => VerificationTypeInfo::UninitializedThis,
                         7 => {
                             let class = reader.take::<u16>()?;
-                            VerificationTypeInfo::Object { class }
+                            VerificationTypeInfo::Object {
+                                class: class.into(),
+                            }
                         }
                         8 => {
                             let offset = reader.take::<u16>()?;

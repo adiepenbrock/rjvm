@@ -1,7 +1,9 @@
+use crate::bytecode::flags::{ClassAccessFlags, FieldAccessFlags, MethodAccessFlags};
+use crate::bytecode::pool::{ConstantPool, ConstantPoolIndex};
+use crate::bytecode::reader::attributes::read_attribute;
+use crate::bytecode::reader::constants::read_constant_pool_entry;
+use crate::bytecode::reader::BufferedReader;
 use crate::bytecode::{
-    flags::{ClassAccessFlags, FieldAccessFlags, MethodAccessFlags},
-    pool::{ConstantPool, ConstantPoolIndex},
-    reader::{attributes::read_attribute, constants::read_constant_pool_entry, BufferedReader},
     BaseType, BytecodeError, ClassFile, ClassFileVersion, Descriptor, DescriptorKind, Field,
     FieldType, Interface, Method,
 };

@@ -1,6 +1,5 @@
-use crate::bytecode::{BaseType, Descriptor, DescriptorKind, FieldType};
-
 use super::BytecodeError;
+use crate::bytecode::{BaseType, Descriptor, DescriptorKind, FieldType};
 
 impl Descriptor {
     /// ```text
@@ -150,7 +149,7 @@ pub mod tests {
 
         for (idx, t) in input.iter().enumerate() {
             let ret = Descriptor::parse_from_field(t.to_string());
-            assert!(ret.is_some());
+            assert!(ret.is_ok());
             assert_eq!(ret.unwrap().ty, expected[idx]);
         }
     }
