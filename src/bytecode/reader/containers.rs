@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use crate::bytecode::attributes::Container;
 use crate::bytecode::flags::{ClassAccessFlags, FieldAccessFlags, MethodAccessFlags};
 use crate::bytecode::pool::{ConstantPool, ConstantPoolIndex};
 use crate::bytecode::reader::attributes::read_attribute;
@@ -11,9 +14,11 @@ use crate::bytecode::{
 pub fn read_classfile(
     reader: &mut BufferedReader,
     cp: &mut ConstantPool,
+    container: &Container,
 ) -> Result<ClassFile, BytecodeError> {
     let magic_number = reader.take::<u32>()?;
     if magic_number != 0xCAFEBABE {
+        println!("Magic number is invalid: 0x{:X}", magic_number);
         return Err(BytecodeError::InvalidClassFile);
     }
 
@@ -51,22 +56,22 @@ pub fn read_classfile(
     let fields_count = reader.take::<u16>()?;
     let mut fields = Vec::with_capacity(fields_count as usize);
     for _ in 0..fields_count {
-        let field = read_field(reader, cp)?;
+        let field = read_field(reader, cp, container)?;
         fields.push(field);
     }
 
     let methods_count = reader.take::<u16>()?;
     let mut methods = Vec::with_capacity(methods_count as usize);
     for _ in 0..methods_count {
-        let method = read_method(reader, cp)?;
+        let method = read_method(reader, cp, container)?;
         methods.push(method);
     }
 
     let attributes_count = reader.take::<u16>()?;
-    let mut attributes = Vec::with_capacity(attributes_count as usize);
+    let mut attributes = HashMap::with_capacity(attributes_count as usize);
     for _ in 0..attributes_count {
-        let attribute = read_attribute(reader, cp)?;
-        attributes.push(attribute);
+        let attribute = read_attribute(reader, cp, container)?;
+        attributes.insert(attribute.name_any(), attribute);
     }
 
     Ok(ClassFile {
@@ -102,6 +107,7 @@ pub fn read_interface(
 pub fn read_field(
     reader: &mut BufferedReader,
     cp: &mut ConstantPool,
+    container: &Container,
 ) -> Result<Field, BytecodeError> {
     let access_flags = reader.take::<u16>()?;
     let Some(access_flags) = FieldAccessFlags::from_bits(access_flags) else {
@@ -123,10 +129,11 @@ pub fn read_field(
     });
 
     let attributes_count = reader.take::<u16>()?;
-    let mut attributes = Vec::with_capacity(attributes_count as usize);
+    // let mut attributes = Vec::with_capacity(attributes_count as usize);
+    let mut attributes = HashMap::with_capacity(attributes_count as usize);
     for _ in 0..attributes_count {
-        let attribute = read_attribute(reader, cp)?;
-        attributes.push(attribute);
+        let attribute = read_attribute(reader, cp, container)?;
+        attributes.insert(attribute.name_any(), attribute);
     }
 
     Ok(Field {
@@ -140,6 +147,7 @@ pub fn read_field(
 pub fn read_method(
     reader: &mut BufferedReader,
     cp: &mut ConstantPool,
+    container: &Container,
 ) -> Result<Method, BytecodeError> {
     let access_flags = reader.take::<u16>()?;
     let Some(access_flags) = MethodAccessFlags::from_bits(access_flags) else {
@@ -158,10 +166,10 @@ pub fn read_method(
     let descriptor = Descriptor::parse_from_method(descriptor);
 
     let attributes_count = reader.take::<u16>()?;
-    let mut attributes = Vec::with_capacity(attributes_count as usize);
+    let mut attributes = HashMap::with_capacity(attributes_count as usize);
     for _ in 0..attributes_count {
-        let attribute = read_attribute(reader, cp)?;
-        attributes.push(attribute);
+        let attribute = read_attribute(reader, cp, container)?;
+        attributes.insert(attribute.name_any(), attribute);
     }
 
     Ok(Method {

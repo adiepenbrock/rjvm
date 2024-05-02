@@ -1,4 +1,6 @@
-use crate::bytecode::attributes::Attribute;
+use std::collections::HashMap;
+
+use self::attributes::AnyAttribute;
 use crate::bytecode::flags::{ClassAccessFlags, FieldAccessFlags, MethodAccessFlags};
 use crate::bytecode::pool::{ConstantPool, ConstantPoolIndex};
 
@@ -12,7 +14,7 @@ pub mod reader;
 pub enum BytecodeError {
     ConstantPoolEntryAlreadyExists,
     ConstantPoolEntryNotFound,
-    UnsupportedAttributeName,
+    UnsupportedAttributeName(String),
     InvalidClassFile,
     UnexpectedEndOfData,
     InvalidData,
@@ -43,7 +45,7 @@ pub struct ClassFile {
     pub methods_count: u16,
     pub methods: Vec<Method>,
     pub attributes_count: u16,
-    pub attributes: Vec<Attribute>,
+    pub attributes: HashMap<&'static str, Box<dyn AnyAttribute>>,
 }
 
 #[derive(Debug)]
@@ -51,7 +53,7 @@ pub struct Field {
     pub name: String,
     pub descriptor: Descriptor,
     pub access_flags: FieldAccessFlags,
-    pub attributes: Vec<Attribute>,
+    pub attributes: HashMap<&'static str, Box<dyn AnyAttribute>>,
 }
 
 #[derive(Debug)]
@@ -59,7 +61,7 @@ pub struct Method {
     pub access_flags: MethodAccessFlags,
     pub name: String,
     pub descriptor: Vec<Descriptor>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: HashMap<&'static str, Box<dyn AnyAttribute>>,
 }
 
 #[derive(Debug)]
