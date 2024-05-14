@@ -64,6 +64,15 @@ pub struct Method {
     pub attributes: HashMap<&'static str, Box<dyn AnyAttribute>>,
 }
 
+impl Method {
+    pub fn get_attribute<T: AnyAttribute + 'static>(&self, name: &str) -> Option<&T> {
+        self.attributes
+            .get(name)
+            .map(|attr| attr.as_any_ref().downcast_ref::<T>())
+            .flatten()
+    }
+}
+
 #[derive(Debug)]
 pub struct Interface {
     pub name_index: ConstantPoolIndex,
