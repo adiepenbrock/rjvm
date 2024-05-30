@@ -47,8 +47,7 @@ fn main() {
             let attr_params: Vec<String> = method
                 .attributes
                 .get("MethodParameters")
-                .map(|attr| attr.as_any_ref().downcast_ref::<MethodParametersInfo>())
-                .flatten()
+                .and_then(|attr| attr.as_any_ref().downcast_ref::<MethodParametersInfo>())
                 .map(|params| {
                     params
                         .parameters
@@ -56,7 +55,7 @@ fn main() {
                         .map(|param| cp.text_of(param.name_index).unwrap())
                         .collect()
                 })
-                .unwrap_or(vec![]);
+                .unwrap_or_default();
 
             let desc_params = method
                 .descriptor

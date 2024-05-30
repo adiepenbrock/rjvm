@@ -47,8 +47,8 @@ impl Container {
         self.inner.insert(name, Box::new(factory));
     }
 
-    pub fn get_by_name(&self, name: &str) -> Option<&Box<dyn AttributeFactory>> {
-        self.inner.get(name)
+    pub fn get_by_name(&self, name: &str) -> Option<&dyn AttributeFactory> {
+        self.inner.get(name).map(|f| f.as_ref())
     }
 }
 
@@ -366,7 +366,7 @@ pub fn element_value_string(
     pool: &ConstantPool,
 ) -> Result<String, BytecodeError> {
     match value {
-        ElementValue::ConstValueIndex(idx) => match pool.text_of(idx.clone()) {
+        ElementValue::ConstValueIndex(idx) => match pool.text_of(*idx) {
             Some(str) => Ok(str.to_string()),
             None => Err(BytecodeError::ConstantPoolEntryNotFound),
         },
@@ -376,7 +376,7 @@ pub fn element_value_string(
         } => {
             todo!()
         }
-        ElementValue::ClassInfoIndex(idx) => match pool.text_of(idx.clone()) {
+        ElementValue::ClassInfoIndex(idx) => match pool.text_of(*idx) {
             Some(str) => Ok(str.to_string()),
             None => Err(BytecodeError::ConstantPoolEntryNotFound),
         },
