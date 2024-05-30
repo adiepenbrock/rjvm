@@ -361,6 +361,34 @@ pub enum ElementValue {
     },
 }
 
+pub fn element_value_string(
+    value: &ElementValue,
+    pool: &ConstantPool,
+) -> Result<String, BytecodeError> {
+    match value {
+        ElementValue::ConstValueIndex(idx) => match pool.text_of(idx.clone()) {
+            Some(str) => Ok(str.to_string()),
+            None => Err(BytecodeError::ConstantPoolEntryNotFound),
+        },
+        ElementValue::EnumConstValue {
+            type_name_index: _,
+            const_name_index: _,
+        } => {
+            todo!()
+        }
+        ElementValue::ClassInfoIndex(idx) => match pool.text_of(idx.clone()) {
+            Some(str) => Ok(str.to_string()),
+            None => Err(BytecodeError::ConstantPoolEntryNotFound),
+        },
+        ElementValue::Annotation(_annotation) => {
+            todo!()
+        }
+        ElementValue::Array { values: _, .. } => {
+            todo!()
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct ParameterAnnotation {
     pub num_annotations: u16,
