@@ -1,80 +1,260 @@
+use std::collections::HashMap;
+
+use super::pool::ConstantPool;
+use super::reader::BufferedReader;
+use super::BytecodeError;
 use crate::bytecode::flags::InnerClassAccessFlags;
 use crate::bytecode::pool::ConstantPoolIndex;
 
-#[derive(Debug)]
-pub enum Attribute {
-    ConstantValue(ConstantValueInfo),
-    Code(CodeInfo),
-    StackMapTable(StackMapTableInfo),
-    Exceptions(ExceptionsInfo),
-    InnerClasses(InnerClassesInfo),
-    EnclosingMethod(EnclosingMethodInfo),
-    Synthetic(SyntheticInfo),
-    Signature(SignatureInfo),
-    SourceFile(SourceFileInfo),
-    SourceDebugExtension(SourceDebugExtensionInfo),
-    LineNumberTable(LineNumberTableInfo),
-    LocalVariableTable(LocalVariableTableInfo),
-    LocalVariableTypeTable(LocalVariableTypeTableInfo),
-    Deprecated(DeprecatedInfo),
-    RuntimeVisibleAnnotations(RuntimeVisibleAnnotationsInfo),
-    RuntimeInvisibleAnnotations(RuntimeInvisibleAnnotationsInfo),
-    RuntimeVisibleParameterAnnotations(RuntimeVisibleParameterAnnotationsInfo),
-    RuntimeInvisibleParameterAnnotations(RuntimeInvisibleParameterAnnotationsInfo),
-    RuntimeVisibleTypeAnnotations(RuntimeVisibleTypeAnnotationsInfo),
-    RuntimeInvisibleTypeAnnotations(RuntimeInvisibleTypeAnnotationsInfo),
-    AnnotationDefault(AnnotationDefaultInfo),
-    BootstrapMethods(BootstrapMethodsInfo),
-    MethodParameters(MethodParametersInfo),
-    Module(ModuleInfo),
-    ModulePackages(ModulePackagesInfo),
-    ModuleMainClass(ModuleMainClassInfo),
-    NestHost(NestHostInfo),
-    NestMembers(NestMembersInfo),
-    Record(RecordInfo),
-    PermittedSubtypes(PermittedSubtypesInfo),
+pub trait Attribute {
+    /// Returns the name of the attribute.
+    ///
+    /// WARNING: This should only be used for debugging purposes because there is no guarantee that
+    /// no other `AttributeInfo` implementation will return the same name.
+    fn name(&self) -> &'static str {
+        "[unknown attribute]"
+    }
 }
 
-impl std::fmt::Display for Attribute {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::ConstantValue(_) => write!(f, "ConstantValue"),
-            Self::Code(_) => write!(f, "Code"),
-            Self::StackMapTable(_) => write!(f, "StackMapTable"),
-            Self::Exceptions(_) => write!(f, "Exceptions"),
-            Self::InnerClasses(_) => write!(f, "InnerClasses"),
-            Self::EnclosingMethod(_) => write!(f, "EnclosingMethod"),
-            Self::Synthetic(_) => write!(f, "Synthetic"),
-            Self::Signature(_) => write!(f, "Signature"),
-            Self::SourceFile(_) => write!(f, "SourceFile"),
-            Self::SourceDebugExtension(_) => write!(f, "SourceDebugExtension"),
-            Self::LineNumberTable(_) => write!(f, "LineNumberTable"),
-            Self::LocalVariableTable(_) => write!(f, "LocalVariableTable"),
-            Self::LocalVariableTypeTable(_) => write!(f, "LocalVariableTypeTable"),
-            Self::Deprecated(_) => write!(f, "Deprecated"),
-            Self::RuntimeVisibleAnnotations(_) => write!(f, "RuntimeVisibleAnnotations"),
-            Self::RuntimeInvisibleAnnotations(_) => write!(f, "RuntimeInvisibleAnnotations"),
-            Self::RuntimeVisibleParameterAnnotations(_) => {
-                write!(f, "RuntimeVisibleParameterAnnotations")
-            }
-            Self::RuntimeInvisibleParameterAnnotations(_) => {
-                write!(f, "RuntimeInvisibleParameterAnnotations")
-            }
-            Self::RuntimeVisibleTypeAnnotations(_) => write!(f, "RuntimeVisibleTypeAnnotations"),
-            Self::RuntimeInvisibleTypeAnnotations(_) => {
-                write!(f, "RuntimeInvisibleTypeAnnotations")
-            }
-            Self::AnnotationDefault(_) => write!(f, "AnnotationDefault"),
-            Self::BootstrapMethods(_) => write!(f, "BootstrapMethods"),
-            Self::MethodParameters(_) => write!(f, "MethodParameters"),
-            Self::Module(_) => write!(f, "Module"),
-            Self::ModulePackages(_) => write!(f, "ModulePackages"),
-            Self::ModuleMainClass(_) => write!(f, "ModuleMainClass"),
-            Self::NestHost(_) => write!(f, "NestHost"),
-            Self::NestMembers(_) => write!(f, "NestMembers"),
-            Self::Record(_) => write!(f, "Record"),
-            Self::PermittedSubtypes(_) => write!(f, "PermittedSubtypes"),
+pub trait AttributeFactory: std::fmt::Debug {
+    fn make(
+        &self,
+        reader: &mut BufferedReader,
+        pool: &mut ConstantPool,
+        container: &Container,
+    ) -> Result<Box<dyn AnyAttribute>, BytecodeError>;
+}
+
+#[derive(Debug)]
+pub struct Container {
+    inner: HashMap<&'static str, Box<dyn AttributeFactory>>,
+}
+
+impl Default for Container {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Container {
+    pub fn new() -> Self {
+        Self {
+            inner: HashMap::new(),
         }
+    }
+
+    pub fn register(&mut self, name: &'static str, factory: impl AttributeFactory + 'static) {
+        self.inner.insert(name, Box::new(factory));
+    }
+
+    pub fn get_by_name(&self, name: &str) -> Option<&dyn AttributeFactory> {
+        self.inner.get(name).map(|f| f.as_ref())
+    }
+}
+
+impl Attribute for Box<dyn Attribute> {
+    fn name(&self) -> &'static str {
+        self.as_ref().name()
+    }
+}
+
+pub trait AnyAttribute: std::fmt::Debug {
+    fn as_any_ref(&self) -> &dyn std::any::Any;
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any;
+    fn name_any(&self) -> &'static str;
+}
+
+impl<T: std::fmt::Debug + Attribute + 'static> AnyAttribute for T {
+    fn as_any_ref(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self
+    }
+
+    fn name_any(&self) -> &'static str {
+        self.name()
+    }
+}
+
+impl Attribute for ConstantValueInfo {
+    fn name(&self) -> &'static str {
+        "ConstantValue"
+    }
+}
+
+impl Attribute for CodeInfo {
+    fn name(&self) -> &'static str {
+        "Code"
+    }
+}
+
+impl Attribute for StackMapTableInfo {
+    fn name(&self) -> &'static str {
+        "StackMapTable"
+    }
+}
+
+impl Attribute for ExceptionsInfo {
+    fn name(&self) -> &'static str {
+        "Exceptions"
+    }
+}
+
+impl Attribute for InnerClassesInfo {
+    fn name(&self) -> &'static str {
+        "InnerClasses"
+    }
+}
+
+impl Attribute for EnclosingMethodInfo {
+    fn name(&self) -> &'static str {
+        "EnclosingMethod"
+    }
+}
+
+impl Attribute for SyntheticInfo {
+    fn name(&self) -> &'static str {
+        "Synthetic"
+    }
+}
+
+impl Attribute for SignatureInfo {
+    fn name(&self) -> &'static str {
+        "Signature"
+    }
+}
+
+impl Attribute for SourceFileInfo {
+    fn name(&self) -> &'static str {
+        "SourceFile"
+    }
+}
+
+impl Attribute for SourceDebugExtensionInfo {
+    fn name(&self) -> &'static str {
+        "SourceDebugExtension"
+    }
+}
+
+impl Attribute for LineNumberTableInfo {
+    fn name(&self) -> &'static str {
+        "LineNumberTable"
+    }
+}
+
+impl Attribute for LocalVariableTableInfo {
+    fn name(&self) -> &'static str {
+        "LocalVariableTable"
+    }
+}
+
+impl Attribute for LocalVariableTypeTableInfo {
+    fn name(&self) -> &'static str {
+        "LocalVariableTypeTable"
+    }
+}
+
+impl Attribute for DeprecatedInfo {
+    fn name(&self) -> &'static str {
+        "Deprecated"
+    }
+}
+
+impl Attribute for RuntimeVisibleAnnotationsInfo {
+    fn name(&self) -> &'static str {
+        "RuntimeVisibleAnnotations"
+    }
+}
+
+impl Attribute for RuntimeInvisibleAnnotationsInfo {
+    fn name(&self) -> &'static str {
+        "RuntimeInvisibleAnnotations"
+    }
+}
+
+impl Attribute for RuntimeVisibleParameterAnnotationsInfo {
+    fn name(&self) -> &'static str {
+        "RuntimeVisibleParameterAnnotations"
+    }
+}
+
+impl Attribute for RuntimeInvisibleParameterAnnotationsInfo {
+    fn name(&self) -> &'static str {
+        "RuntimeInvisibleParameterAnnotations"
+    }
+}
+
+impl Attribute for RuntimeVisibleTypeAnnotationsInfo {
+    fn name(&self) -> &'static str {
+        "RuntimeVisibleTypeAnnotations"
+    }
+}
+
+impl Attribute for RuntimeInvisibleTypeAnnotationsInfo {
+    fn name(&self) -> &'static str {
+        "RuntimeInvisibleTypeAnnotations"
+    }
+}
+
+impl Attribute for AnnotationDefaultInfo {
+    fn name(&self) -> &'static str {
+        "AnnotationDefault"
+    }
+}
+
+impl Attribute for BootstrapMethodsInfo {
+    fn name(&self) -> &'static str {
+        "BootstrapMethods"
+    }
+}
+
+impl Attribute for MethodParametersInfo {
+    fn name(&self) -> &'static str {
+        "MethodParameters"
+    }
+}
+
+impl Attribute for ModuleInfo {
+    fn name(&self) -> &'static str {
+        "Module"
+    }
+}
+
+impl Attribute for ModulePackagesInfo {
+    fn name(&self) -> &'static str {
+        "ModulePackages"
+    }
+}
+
+impl Attribute for ModuleMainClassInfo {
+    fn name(&self) -> &'static str {
+        "ModuleMainClass"
+    }
+}
+
+impl Attribute for NestHostInfo {
+    fn name(&self) -> &'static str {
+        "NestHost"
+    }
+}
+
+impl Attribute for NestMembersInfo {
+    fn name(&self) -> &'static str {
+        "NestMembers"
+    }
+}
+
+impl Attribute for RecordInfo {
+    fn name(&self) -> &'static str {
+        "Record"
+    }
+}
+
+impl Attribute for PermittedSubtypesInfo {
+    fn name(&self) -> &'static str {
+        "PermittedSubtypes"
     }
 }
 
@@ -179,6 +359,34 @@ pub enum ElementValue {
         num_values: u16,
         values: Vec<ElementValue>,
     },
+}
+
+pub fn element_value_string(
+    value: &ElementValue,
+    pool: &ConstantPool,
+) -> Result<String, BytecodeError> {
+    match value {
+        ElementValue::ConstValueIndex(idx) => match pool.text_of(*idx) {
+            Some(str) => Ok(str.to_string()),
+            None => Err(BytecodeError::ConstantPoolEntryNotFound),
+        },
+        ElementValue::EnumConstValue {
+            type_name_index: _,
+            const_name_index: _,
+        } => {
+            todo!()
+        }
+        ElementValue::ClassInfoIndex(idx) => match pool.text_of(*idx) {
+            Some(str) => Ok(str.to_string()),
+            None => Err(BytecodeError::ConstantPoolEntryNotFound),
+        },
+        ElementValue::Annotation(_annotation) => {
+            todo!()
+        }
+        ElementValue::Array { values: _, .. } => {
+            todo!()
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -312,7 +520,7 @@ pub struct RecordComponent {
     pub name_index: ConstantPoolIndex,
     pub descriptor_index: ConstantPoolIndex,
     pub attributes_count: u16,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<Box<dyn AnyAttribute>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -369,7 +577,7 @@ pub struct CodeInfo {
     pub exception_table_length: u16,
     pub exception_table: Vec<ExceptionTableEntry>,
     pub attributes_count: u16,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<Box<dyn AnyAttribute>>,
 }
 
 #[derive(Debug)]
@@ -586,7 +794,7 @@ pub struct RecordInfo {
     pub attribute_name_index: ConstantPoolIndex,
     pub attribute_length: u32,
     pub component_count: u16,
-    pub components: Vec<Attribute>,
+    pub components: Vec<Box<dyn AnyAttribute>>,
 }
 
 #[derive(Debug)]
