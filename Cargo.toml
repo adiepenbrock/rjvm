@@ -31,3 +31,10 @@ doc-scrape-examples = true
 name = "printelements"
 required-features = ["decoder"]
 doc-scrape-examples = true
+
+[[example]]
+name = "instrcfg"
+required-features = ["decoder"]
+doc-scrape-examples = true
+
+
