@@ -49,7 +49,7 @@ fn main() {
                 let opcode = code_reader.take::<u8>().unwrap();
                 let instr = parse_instruction(opcode, &mut code_reader)
                     .expect("instruction should be parsed");
-                println!("  0x{opcode:02x}: {}", instr);
+                println!("  0x{opcode:02x}: {}", instr.opcode());
             }
         }
         println!();
