@@ -11,7 +11,7 @@ keywords = ["jvm", "java"]
 
 [dependencies]
 bitflags = "2.5.0"
-thiserror = "1.0.61"
+thiserror = "2.0.3"
 
 [features]
 default = ["decoder"]
